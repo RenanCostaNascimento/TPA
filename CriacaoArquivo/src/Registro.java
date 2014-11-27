@@ -7,13 +7,16 @@ import java.io.Serializable;
 
 public class Registro implements Serializable{
 
+	public static int quantidade = 0;
+	
 	private int numero;
 	private String nome;
 	private String sobrenome;
 
 	public Registro() {
-		numero = 1;
-		nome = "nome";
+		quantidade++;
+		numero = quantidade;
+		nome = "nome " + quantidade;
 	}
 
 	public byte[] serialize() throws IOException {
@@ -30,7 +33,7 @@ public class Registro implements Serializable{
     }
 	
 	public String toString(){
-		return nome + " " + numero;
+		return numero + " - " + nome;
 	}
 
 }
