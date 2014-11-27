@@ -12,26 +12,27 @@ import java.io.RandomAccessFile;
 
 public class test {
 
-	private static final float GIGA_SIZE = 1073741824;
-	private static final float QUANT_GIGA = 1;
-	private static final String FILE_NAME = "D:\\TPA\\test.bin";
+	private static final long GIGA_SIZE = 1073741824;
+	private static final long QUANT_GIGA = 10;
+	private static final String FILE_NAME = "D:\\TPA\\10Giga.bin";
 
 	public static void main(String args[]) {
-		escrever3();
+		escrita1();
+//		leitura1();
 	}
 
-	private static void metodo1() {
+	private static void escrita1() {
 		try {
 			RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw");
 
 			for (int i = 0; i < QUANT_GIGA; i++) {
-				while (file.length() < GIGA_SIZE) {
-					System.out.println(file.length());
+				while (file.length() < GIGA_SIZE*(i+1)) {
 					Registro registro = new Registro();
 					file.write(registro.serialize());
 				}
-				System.out.println(i + " giga criados!");
+				System.out.println(i+1 + "° giga criado!");
 			}
+			file.close();
 
 			System.out.println("registros inseridos: " + Registro.quantidade);
 
@@ -39,6 +40,35 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private static void leitura1(){
+		try {
+			RandomAccessFile file = new RandomAccessFile(FILE_NAME, "r");
+
+			int bufferSize = new Registro().serialize().length;
+			
+			for (int i = 0; i < 100; i++) {
+				byte[] buffer = new byte[bufferSize];
+				
+				file.read(buffer);
+				
+				Registro registro = (Registro) Registro.deserialize(buffer);
+				
+				System.out.println(registro);
+			}
+			
+			file.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
