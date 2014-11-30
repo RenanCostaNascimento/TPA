@@ -10,11 +10,12 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 
-public class test {
+public class Main {
 
-	private static final long GIGA_SIZE = 1073741824;
-	private static final long QUANT_GIGA = 10;
-	private static final String FILE_NAME = "D:\\TPA\\10Giga.bin";
+	private static final long TAMANHO_INTEIRO = 1073741824;
+	private static final long TAMANHO_GIGA = 1073741824;
+	private static final long QUANTIDADE_GIGA = 10;
+	private static final String NOME_ARQUIVO = "D:\\TPA\\10Giga.bin";
 
 	public static void main(String args[]) {
 		escrita1();
@@ -23,10 +24,10 @@ public class test {
 
 	private static void escrita1() {
 		try {
-			RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw");
+			RandomAccessFile file = new RandomAccessFile(NOME_ARQUIVO, "rw");
 
-			for (int i = 0; i < QUANT_GIGA; i++) {
-				while (file.length() < GIGA_SIZE*(i+1)) {
+			for (int i = 0; i < QUANTIDADE_GIGA; i++) {
+				while (file.length() < TAMANHO_GIGA*(i+1)) {
 					Registro registro = new Registro();
 					file.write(registro.serialize());
 				}
@@ -47,12 +48,12 @@ public class test {
 	
 	private static void leitura1(){
 		try {
-			RandomAccessFile file = new RandomAccessFile(FILE_NAME, "r");
+			RandomAccessFile file = new RandomAccessFile(NOME_ARQUIVO, "r");
 
-			int bufferSize = new Registro().serialize().length;
+			int tamanhoRegistro = new Registro().serialize().length;
 			
 			for (int i = 0; i < 100; i++) {
-				byte[] buffer = new byte[bufferSize];
+				byte[] buffer = new byte[tamanhoRegistro];
 				
 				file.read(buffer);
 				
@@ -81,7 +82,7 @@ public class test {
 	}
 
 	public static void escrever2() {
-		File file = new File(FILE_NAME);
+		File file = new File(NOME_ARQUIVO);
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		DataOutputStream dos = null;
@@ -91,8 +92,8 @@ public class test {
 			bos = new BufferedOutputStream(fos);
 			dos = new DataOutputStream(bos);
 
-			for (int i = 0; i < QUANT_GIGA; i++) {
-				while (dos.size() < GIGA_SIZE) {
+			for (int i = 0; i < QUANTIDADE_GIGA; i++) {
+				while (dos.size() < TAMANHO_GIGA) {
 					byte[] registoByte = new Registro().serialize();
 					dos.write(registoByte);
 				}
@@ -114,7 +115,7 @@ public class test {
 	}
 
 	public static void ler2() {
-		File file = new File(FILE_NAME);
+		File file = new File(NOME_ARQUIVO);
 		FileInputStream fis = null;
 		BufferedInputStream bis = null;
 		DataInputStream dis = null;
@@ -144,7 +145,7 @@ public class test {
 	}
 
 	public static void escrever3() {
-		File file = new File(FILE_NAME);
+		File file = new File(NOME_ARQUIVO);
 		ObjectOutputStream oos = null;
 		FileOutputStream fos = null;
 
@@ -152,9 +153,9 @@ public class test {
 			fos = new FileOutputStream(file);
 			oos = new ObjectOutputStream(fos);
 
-			for (int i = 0; i < QUANT_GIGA; i++) {
+			for (int i = 0; i < QUANTIDADE_GIGA; i++) {
 				double buffer = 0;
-				while (buffer < GIGA_SIZE) {
+				while (buffer < TAMANHO_GIGA) {
 					Registro registro = new Registro();
 					oos.writeObject(registro);
 					buffer = registro.serialize().length;
