@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Random;
 
-public class Registro implements Serializable{
+public class Registro implements Serializable, Comparable<Registro>{
 
 	public static int quantidade = 0;
 	
@@ -18,13 +18,19 @@ public class Registro implements Serializable{
 	private float saldo;
 
 	public Registro() {
+		Random random = new Random();
 		quantidade++;
 		numero = quantidade;
 		gerarNome(nome, 50);
 		gerarNome(sobrenome, 50);
 		gerarNome(endereco, 256);
 		gerarNome(telefone, 20);
-		saldo = numero*1000;
+		if(numero % 2 == 0){
+			saldo = numero*(random.nextInt(11)*1000);
+		}else{
+			saldo = random.nextInt(11)*-random.nextInt(101);
+		}
+		
 	}
 	
 	private void gerarNome(char[] nomeVetor, int tamanhoVetor){
@@ -50,7 +56,7 @@ public class Registro implements Serializable{
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(numero+" ");
+		builder.append(saldo+" ");
 		
 		for (int i = 0; i < 50; i++) {
 			builder.append(nome[i]);
@@ -58,6 +64,22 @@ public class Registro implements Serializable{
 		
 		return builder.toString();
 		
+	}
+
+//	@Override
+//	public int compare(Registro registro1, Registro registro2) {		
+//		if(registro1.saldo <= registro2.saldo){
+//			return -1;
+//		}
+//		return 1;
+//	}
+
+	@Override
+	public int compareTo(Registro registro) {
+		if(this.saldo <= registro.saldo){
+			return -1;
+		}
+		return 1;
 	}
 
 }
