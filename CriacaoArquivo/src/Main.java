@@ -1,13 +1,27 @@
+import java.io.IOException;
+
 public class Main {
 
 	public static void main(String args[]) {
-		ManipularArquivo manipularArquivo = new ManipularArquivo();
+		ManipularArquivo manipularArquivo;
+		try {
+			manipularArquivo = new ManipularArquivo();
+			
+//			manipularArquivo.gerarArquivo(Constantes.CAMINHO_ARQUIVO
+//			+ Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA);
+			
+			manipularArquivo.ordenarArquivo(Constantes.CAMINHO_ARQUIVO
+					+ Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA/2);
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		manipularArquivo.gerarArquivo(Constantes.CAMINHO_ARQUIVO
-				+ Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA);
 
-		manipularArquivo.ordenarArquivo(Constantes.CAMINHO_ARQUIVO
-				+ Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA);
 
+		
+		
 	}
 }
