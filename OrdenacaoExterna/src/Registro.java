@@ -61,10 +61,6 @@ public class Registro implements Serializable, Comparable<Registro> {
 
 		builder.append(saldo + " ");
 
-		for (int i = 0; i < 50; i++) {
-			builder.append(nome[i]);
-		}
-
 		return builder.toString();
 
 	}
@@ -74,7 +70,7 @@ public class Registro implements Serializable, Comparable<Registro> {
 		if (this.saldo < registro.saldo) {
 			return -1;
 		} else {
-			if (this.saldo < registro.saldo) {
+			if (this.saldo > registro.saldo) {
 				return 1;
 			}
 		}
