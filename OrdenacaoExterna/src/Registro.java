@@ -78,4 +78,8 @@ public class Registro implements Serializable, Comparable<Registro> {
 		return 0;
 	}
 
+	public float getSaldo() {
+		return saldo;
+	}
+
 }
