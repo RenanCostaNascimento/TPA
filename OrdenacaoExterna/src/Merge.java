@@ -1,15 +1,16 @@
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Merge {
 
 	private int tamanhoRegistro;
+	private long tamanhoFinalArquivoSaida = 0;
 
 	private RandomAccessFile[] arquivos;
 	private Registro[] registros;
 	private Buffer[] buffersEntrada;
 	private Buffer bufferSaida;
+	private RandomAccessFile arquivoSaida;
 
 	private String nomeArquivo;
 	private int quantidadeMemoriaDisponivel;
@@ -20,9 +21,12 @@ public class Merge {
 		this.quantidadeMemoriaDisponivel = quantidadeMemoriaDisponivel;
 		this.quantidadeArquivos = quantidadeArquivos;
 		this.nomeArquivo = nomeArquivo;
+		this.arquivoSaida = new RandomAccessFile(nomeArquivo + "_Merge", "rw");
 
 		arquivos = new RandomAccessFile[quantidadeArquivos];
 		registros = new Registro[quantidadeArquivos];
+		buffersEntrada = new Buffer[quantidadeArquivos];
+
 		// criarBuffersEntrada(quantidadeMemoriaDisponivel, quantidadeArquivos);
 		bufferSaida = new Buffer(quantidadeMemoriaDisponivel
 				/ (quantidadeArquivos + 1));
@@ -40,7 +44,8 @@ public class Merge {
 		for (int i = 0; i < quantidadeArquivos; i++) {
 			try {
 				arquivos[i] = new RandomAccessFile(nomeArquivo + (i + 1), "r");
-			} catch (FileNotFoundException e) {
+				tamanhoFinalArquivoSaida += arquivos[i].length();
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -49,25 +54,43 @@ public class Merge {
 	}
 
 	/**
-	 * Realiza o merge dos arquivos especificados nos atributos da classe.
+	 * Fecha os arquivos abertos.
 	 */
-	public void merge() {
+	private void fecharArquivos() {
+		for (int i = 0; i < quantidadeArquivos; i++) {
+			try {
+				arquivos[i].close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Realiza o merge dos arquivos especificados nos atributos da classe.
+	 * 
+	 * @throws IOException
+	 */
+	public void merge() throws IOException {
 		inicializarMerge();
 
-		//ok!
-		while (buffersEntrada.length != 0) {
+		while (arquivoSaida.length() < tamanhoFinalArquivoSaida) {
 			int posicaoMenorRegistro = encontrarMenorRegistro();
 			encherBufferSaida(posicaoMenorRegistro);
 			registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
 		}
 
+		fecharArquivos();
+
 	}
 
 	/**
-	 * Faz os preparativos iniciais para o merge: abrir os arquivos, carregar os buffers de entrada,
-	 * recuperar o primeiro registro de cada buffer.
+	 * Faz os preparativos iniciais para o merge: abrir os arquivos, carregar os
+	 * buffers de entrada, recuperar o primeiro registro de cada buffer.
 	 */
 	private void inicializarMerge() {
+		System.out.println("Inicializando merge...");
 		abrirArquivos();
 
 		for (int i = 0; i < quantidadeArquivos; i++) {
@@ -84,9 +107,12 @@ public class Merge {
 	 * 
 	 * @param buffer
 	 *            o buffer que deverá ser escrito.
+	 * @throws IOException
 	 */
-	private void escreverBuffer(byte[] buffer) {
-
+	private void escreverBuffer(byte[] buffer) throws IOException {
+		System.out.println("Escrevendo buffer...");
+		arquivoSaida.write(buffer);
+		System.out.println(tamanhoFinalArquivoSaida - arquivoSaida.length());
 	}
 
 	/**
@@ -100,7 +126,7 @@ public class Merge {
 	private void encherBufferSaida(int posicaoRegistro) {
 		try {
 			// é possível adicionar um registro completo no buffer
-			if (bufferSaida.getUltimoDadoLido() + tamanhoRegistro < bufferSaida
+			if (bufferSaida.getQuantidadeDados() + tamanhoRegistro <= bufferSaida
 					.getBuffer().length) {
 				bufferSaida.adicionarDados(registros[posicaoRegistro]
 						.serialize());
@@ -108,8 +134,9 @@ public class Merge {
 				escreverBuffer(bufferSaida.getBuffer());
 				bufferSaida = new Buffer(quantidadeMemoriaDisponivel
 						/ (quantidadeArquivos + 1));
+				bufferSaida.adicionarDados(registros[posicaoRegistro]
+						.serialize());
 			}
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -123,10 +150,10 @@ public class Merge {
 	 */
 	private int encontrarMenorRegistro() {
 		int menorPosicao = 0;
-		float menorSaldo = registros[0].getSaldo();
+		float menorSaldo = 1000001;
 
 		for (int i = 1; i < quantidadeArquivos; i++) {
-			if (registros[i].getSaldo() < menorSaldo) {
+			if (registros[i] != null && registros[i].getSaldo() < menorSaldo) {
 				menorSaldo = registros[i].getSaldo();
 				menorPosicao = i;
 			}
@@ -149,14 +176,18 @@ public class Merge {
 
 		try {
 			// é possível ler mais um registro completo
-			if (bufferEntrada.getUltimoDadoLido() + tamanhoRegistro < bufferEntrada
+			if (bufferEntrada.getPonteiro() + tamanhoRegistro <= bufferEntrada
 					.getBuffer().length) {
 				return (Registro) Registro.deserialize(bufferEntrada
 						.recuperarDados(tamanhoRegistro));
 			}
 			// registro remanescente
 			else {
-				return recuperarRegistroRemanescente(numeroBuffer);
+				if (arquivos[numeroBuffer].length()
+						- arquivos[numeroBuffer].getFilePointer() != 0) {
+					return recuperarRegistroRemanescente(numeroBuffer);
+				}
+				return null;
 			}
 
 		} catch (ClassNotFoundException | IOException e) {
@@ -180,7 +211,7 @@ public class Merge {
 		try {
 
 			int bytesRemanescentesFinalBuffer = bufferEntrada.getBuffer().length
-					- bufferEntrada.getUltimoDadoLido() - 1;
+					- bufferEntrada.getPonteiro();
 
 			byte[] remanescenteFinalBuffer = bufferEntrada
 					.recuperarDados(bytesRemanescentesFinalBuffer);
@@ -212,8 +243,25 @@ public class Merge {
 		buffersEntrada[posicaoBuffer] = new Buffer(quantidadeMemoriaDisponivel
 				/ (quantidadeArquivos + 1));
 		try {
-			arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
-					.getBuffer());
+			System.out
+					.println("Lendo arquivo "
+							+ (posicaoBuffer + 1)
+							+ ": "
+							+ (arquivos[posicaoBuffer].length() - arquivos[posicaoBuffer]
+									.getFilePointer()));
+			if (arquivos[posicaoBuffer].length()
+					- arquivos[posicaoBuffer].getFilePointer() >= buffersEntrada[posicaoBuffer]
+						.getBuffer().length) {
+				arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
+						.getBuffer());
+			} else {
+				buffersEntrada[posicaoBuffer] = new Buffer(
+						(int) (arquivos[posicaoBuffer].length() - arquivos[posicaoBuffer]
+								.getFilePointer()));
+				arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
+						.getBuffer());
+			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

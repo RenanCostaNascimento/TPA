@@ -18,5 +18,7 @@ public class Constantes {
 	public static final String ARQUIVO_10_GIGA = "10Giga";
 	public static final String ARQUIVO_20_GIGA = "20Giga";
 	
+	public static final String ARQUIVO_SAIDA = "_Saida";
+	
 	
 }
