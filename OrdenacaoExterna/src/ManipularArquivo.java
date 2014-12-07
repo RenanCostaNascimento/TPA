@@ -214,6 +214,7 @@ public class ManipularArquivo {
 
 			System.out.println("Carregando arquivo em memória...");
 			file.read(buffer);
+			System.out.println(file.getFilePointer());
 
 			while (dadosLidos + tamanhoRegistro < buffer.length) {
 				byte[] byteRegistro = subvetor(buffer, dadosLidos, dadosLidos

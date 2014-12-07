@@ -31,7 +31,7 @@ public class Buffer {
 	public void adicionarDados(byte[] dados) {
 		if (quantidadeDados + dados.length <= buffer.length) {
 			int posicaoDados = 0;
-			for (int i = quantidadeDados; i < dados.length; i++) {
+			for (int i = quantidadeDados; i < quantidadeDados + dados.length; i++) {
 				buffer[i] = dados[posicaoDados];
 				posicaoDados++;
 			}

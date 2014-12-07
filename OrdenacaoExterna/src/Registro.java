@@ -28,9 +28,12 @@ public class Registro implements Serializable, Comparable<Registro> {
 		gerarNome(endereco, 256);
 		gerarNome(telefone, 20);
 		if (numero % 2 == 0) {
-			saldo = random.nextInt(1001) * random.nextInt(1001);
+			saldo = random.nextInt(10001) * random.nextInt(10001);
 		} else {
-			saldo = random.nextInt(11) * -random.nextInt(101);
+			saldo = random.nextInt(1001) * -random.nextInt(101);
+		}
+		if(saldo != 0){
+			saldo /= 100;
 		}
 
 	}

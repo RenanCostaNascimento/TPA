@@ -21,7 +21,7 @@ public class Merge {
 		this.quantidadeMemoriaDisponivel = quantidadeMemoriaDisponivel;
 		this.quantidadeArquivos = quantidadeArquivos;
 		this.nomeArquivo = nomeArquivo;
-		this.arquivoSaida = new RandomAccessFile(nomeArquivo + "_Merge", "rw");
+		this.arquivoSaida = new RandomAccessFile(this.nomeArquivo+"_Merge", "rw");
 
 		arquivos = new RandomAccessFile[quantidadeArquivos];
 		registros = new Registro[quantidadeArquivos];
@@ -77,8 +77,10 @@ public class Merge {
 
 		while (arquivoSaida.length() < tamanhoFinalArquivoSaida) {
 			int posicaoMenorRegistro = encontrarMenorRegistro();
-			encherBufferSaida(posicaoMenorRegistro);
-			registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
+			if(posicaoMenorRegistro != -1){
+				encherBufferSaida(posicaoMenorRegistro);
+				registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
+			}
 		}
 
 		fecharArquivos();
@@ -110,9 +112,9 @@ public class Merge {
 	 * @throws IOException
 	 */
 	private void escreverBuffer(byte[] buffer) throws IOException {
-		System.out.println("Escrevendo buffer...");
+		System.out.println("Escrevendo buffer... " + arquivoSaida.getFilePointer());
 		arquivoSaida.write(buffer);
-		System.out.println(tamanhoFinalArquivoSaida - arquivoSaida.length());
+		System.out.println(tamanhoFinalArquivoSaida - arquivoSaida.length() + " - " + arquivoSaida.getFilePointer());
 	}
 
 	/**
@@ -149,10 +151,10 @@ public class Merge {
 	 * @return a posição do menor Registro.
 	 */
 	private int encontrarMenorRegistro() {
-		int menorPosicao = 0;
+		int menorPosicao = -1;
 		float menorSaldo = 1000001;
 
-		for (int i = 1; i < quantidadeArquivos; i++) {
+		for (int i = 0; i < quantidadeArquivos; i++) {
 			if (registros[i] != null && registros[i].getSaldo() < menorSaldo) {
 				menorSaldo = registros[i].getSaldo();
 				menorPosicao = i;
@@ -184,7 +186,7 @@ public class Merge {
 			// registro remanescente
 			else {
 				if (arquivos[numeroBuffer].length()
-						- arquivos[numeroBuffer].getFilePointer() != 0) {
+						- arquivos[numeroBuffer].getFilePointer() > 0) {
 					return recuperarRegistroRemanescente(numeroBuffer);
 				}
 				return null;
@@ -249,6 +251,7 @@ public class Merge {
 							+ ": "
 							+ (arquivos[posicaoBuffer].length() - arquivos[posicaoBuffer]
 									.getFilePointer()));
+			// é possível ler um buffer inteiro do arquivo
 			if (arquivos[posicaoBuffer].length()
 					- arquivos[posicaoBuffer].getFilePointer() >= buffersEntrada[posicaoBuffer]
 						.getBuffer().length) {
