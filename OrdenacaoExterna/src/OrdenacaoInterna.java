@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ManipularArquivo {
+public class OrdenacaoInterna {
 
 	private int tamanhoRegistro;
 
-	public ManipularArquivo() throws IOException {
+	public OrdenacaoInterna() throws IOException {
 		tamanhoRegistro = new Registro().serialize().length;
 	}
 

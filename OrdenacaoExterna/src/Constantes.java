@@ -7,6 +7,8 @@ public class Constantes {
 	public static final int QUANTIDADE_GIGA = 10;
 	
 	public static final String CAMINHO_ARQUIVO = "D:\\TPA\\";
+	public static final String ARQUIVO_SAIDA = "_Saida";
+	public static final String ARQUIVO_SAIDA_MERGE = "_Merge";
 	public static final String EXTENSAO_ARQUIVO = ".bin";
 	
 	public static final String ARQUIVO_500_MEGA = "500Mega";
@@ -18,7 +20,7 @@ public class Constantes {
 	public static final String ARQUIVO_10_GIGA = "10Giga";
 	public static final String ARQUIVO_20_GIGA = "20Giga";
 	
-	public static final String ARQUIVO_SAIDA = "_Saida";
+	
 	
 	
 }
