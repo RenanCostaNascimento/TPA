@@ -16,6 +16,10 @@ public class Buffer {
 	public int getQuantidadeDados() {
 		return quantidadeDados;
 	}
+	public void setQuantidadeDados(int quantidadeDados) {
+		this.quantidadeDados = quantidadeDados;
+	}
+
 	public int getPonteiro() {
 		return ponteiro;
 	}

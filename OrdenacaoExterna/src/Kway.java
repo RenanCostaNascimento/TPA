@@ -25,7 +25,7 @@ public class Kway {
 			String nomeArquivoMerge = "";
 			for (int i = 0; i < quantidadeMergesIniciais; i++) {
 				System.out.println("Realizando o " + (i + 1)
-						+ "° merge entre os " + quantidadeArquivos
+						+ "° merge entre " + quantidadeArquivos
 						+ " arquivos...");
 
 				merge = new Merge(quantidadeMemoriaDisponivel,

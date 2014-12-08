@@ -3,22 +3,22 @@ import java.io.IOException;
 public class Main {
 
 	public static void main(String args[]) {
-		OrdenacaoInterna manipularArquivo;
+		OrdenacaoInterna ordenacaoInterna;
 		try {
-			manipularArquivo = new OrdenacaoInterna();
+			ordenacaoInterna = new OrdenacaoInterna();
 
-//			 manipularArquivo.gerarArquivo(Constantes.CAMINHO_ARQUIVO
-//			 + Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA);
-//			
-//			 manipularArquivo.ordenarArquivo(Constantes.CAMINHO_ARQUIVO
-//			 + Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_GIGA/4);
+//			 ordenacaoInterna.gerarArquivo(Constantes.CAMINHO_ARQUIVO
+//			 + Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_MEGA);
+			
+//			 ordenacaoInterna.ordenarArquivo(Constantes.CAMINHO_ARQUIVO
+//			 + Constantes.ARQUIVO_1_GIGA, Constantes.TAMANHO_MEGA/4);
 
-			Kway kway = new Kway(4, 1, Constantes.TAMANHO_GIGA/2,
+			Kway kway = new Kway(4, 2, Constantes.TAMANHO_MEGA/2,
 					"1Giga_Saida");
 			
 			kway.kway();
 
-//			 manipularArquivo.fileToString(Constantes.CAMINHO_ARQUIVO+"1Giga_Saida_Merge1");
+//			ordenacaoInterna.fileToString(Constantes.CAMINHO_ARQUIVO+"1Giga_Saida4");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

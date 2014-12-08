@@ -25,21 +25,61 @@ public class Merge {
 		this.numeroArquivoEntrada = numeroArquivoEntrada;
 		this.quantidadeMemoriaDisponivel = quantidadeMemoriaDisponivel;
 		this.quantidadeArquivos = quantidadeArquivos;
+		nomeArquivoSaida = nomeArquivoEntrada + Constantes.ARQUIVO_SAIDA_MERGE;
 		this.nomeArquivoEntrada = Constantes.CAMINHO_ARQUIVO
 				+ nomeArquivoEntrada;
-		nomeArquivoSaida = this.nomeArquivoEntrada
-				+ Constantes.ARQUIVO_SAIDA_MERGE + numeroArquivoSaida;
-		this.arquivoSaida = new RandomAccessFile(nomeArquivoSaida, "rw");
+		this.arquivoSaida = new RandomAccessFile(Constantes.CAMINHO_ARQUIVO
+				+ nomeArquivoSaida + numeroArquivoSaida, "rw");
 		numeroArquivoSaida++;
 
 		arquivos = new RandomAccessFile[quantidadeArquivos];
 		registros = new Registro[quantidadeArquivos];
 		buffersEntrada = new Buffer[quantidadeArquivos];
 
-		// criarBuffersEntrada(quantidadeMemoriaDisponivel, quantidadeArquivos);
-		bufferSaida = new Buffer(quantidadeMemoriaDisponivel
-				/ (quantidadeArquivos + 1));
 		tamanhoRegistro = new Registro().serialize().length;
+		bufferSaida = new Buffer(
+				otimizarTamanhoMemoria(quantidadeMemoriaDisponivel
+						/ (quantidadeArquivos + 1)));
+
+	}
+
+	/**
+	 * Realiza o merge dos arquivos especificados nos atributos da classe.
+	 * 
+	 * @throws IOException
+	 */
+	protected String merge() throws IOException {
+		inicializarMerge();
+
+		while (arquivoSaida.length() < tamanhoFinalArquivoSaida) {
+			int posicaoMenorRegistro = encontrarMenorRegistro();
+			if (posicaoMenorRegistro != -1) {
+				encherBufferSaida(posicaoMenorRegistro);
+				registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
+			} else {
+				escreverBuffer(bufferSaida.getBuffer());
+			}
+		}
+
+		fecharArquivos();
+
+		return nomeArquivoSaida;
+
+	}
+
+	private void validarBufferSaida() {
+		int quantidadeRegistros = 0;
+		while(bufferSaida.getPonteiro() < bufferSaida.getQuantidadeDados()){
+			try {
+				Registro registro = (Registro) Registro.deserialize(bufferSaida.recuperarDados(tamanhoRegistro));
+				quantidadeRegistros++;
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+//		System.out.println(quantidadeRegistros);
+		
 	}
 
 	/**
@@ -68,38 +108,18 @@ public class Merge {
 	 * Fecha os arquivos abertos.
 	 */
 	private void fecharArquivos() {
-		for (int i = 0; i < quantidadeArquivos; i++) {
-			try {
+		System.out.println("Fechando arquivos abertos...\n");
+		try {
+			for (int i = 0; i < quantidadeArquivos; i++) {
+
 				arquivos[i].close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+
 			}
+			arquivoSaida.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Realiza o merge dos arquivos especificados nos atributos da classe.
-	 * 
-	 * @throws IOException
-	 */
-	protected String merge() throws IOException {
-		inicializarMerge();
-
-		while (arquivoSaida.length() < tamanhoFinalArquivoSaida) {
-			int posicaoMenorRegistro = encontrarMenorRegistro();
-			if (posicaoMenorRegistro != -1) {
-				encherBufferSaida(posicaoMenorRegistro);
-				registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
-			}else{
-				escreverBuffer(bufferSaida.getBuffer());;
-			}
-		}
-
-		fecharArquivos();
-
-		return nomeArquivoSaida;
-
 	}
 
 	/**
@@ -127,8 +147,9 @@ public class Merge {
 	 * @throws IOException
 	 */
 	private void escreverBuffer(byte[] buffer) throws IOException {
-		System.out
-				.println("Buffer cheio, descarregando no arquivo...");
+		validarBufferSaida();
+		System.out.println("Buffer cheio, descarregando " + buffer.length
+				+ " bytes no arquivo...");
 		arquivoSaida.write(buffer);
 	}
 
@@ -147,10 +168,11 @@ public class Merge {
 					.getBuffer().length) {
 				bufferSaida.adicionarDados(registros[posicaoRegistro]
 						.serialize());
-			} else {
+			}
+			// buffer cheio
+			else {
 				escreverBuffer(bufferSaida.getBuffer());
-				bufferSaida = new Buffer(quantidadeMemoriaDisponivel
-						/ (quantidadeArquivos + 1));
+				esvaziarBufferSaida();
 				bufferSaida.adicionarDados(registros[posicaoRegistro]
 						.serialize());
 			}
@@ -161,16 +183,33 @@ public class Merge {
 	}
 
 	/**
+	 * Esvazia o buffer se saida.
+	 */
+	private void esvaziarBufferSaida() {
+		int tamanhoBuffersEntrada = 0;
+		int tamanhoBufferOtimo = otimizarTamanhoMemoria(quantidadeMemoriaDisponivel
+				/ (quantidadeArquivos + 1));
+		for (int i = 0; i < quantidadeArquivos; i++) {
+			tamanhoBuffersEntrada += buffersEntrada[i].getQuantidadeDados();
+		}
+		if (tamanhoBuffersEntrada < tamanhoBufferOtimo) {
+			tamanhoBufferOtimo = tamanhoBuffersEntrada;
+		}
+		bufferSaida = new Buffer(tamanhoBufferOtimo);
+
+	}
+
+	/**
 	 * Encontra o menor Registro dado um vetor de Registros.
 	 * 
 	 * @return a posição do menor Registro.
 	 */
 	private int encontrarMenorRegistro() {
 		int menorPosicao = -1;
-		float menorSaldo = 1000001;
+		float menorSaldo = Float.MAX_VALUE;
 
 		for (int i = 0; i < quantidadeArquivos; i++) {
-			if (registros[i] != null && registros[i].getSaldo() < menorSaldo) {
+			if (registros[i] != null && registros[i].getSaldo() <= menorSaldo) {
 				menorSaldo = registros[i].getSaldo();
 				menorPosicao = i;
 			}
@@ -192,62 +231,22 @@ public class Merge {
 		Buffer bufferEntrada = buffersEntrada[numeroBuffer];
 
 		try {
-			// é possível ler mais um registro completo
+			// cabe mais um registro no buffer?
 			if (bufferEntrada.getPonteiro() + tamanhoRegistro <= bufferEntrada
-					.getBuffer().length) {
+					.getQuantidadeDados()) {
 				return (Registro) Registro.deserialize(bufferEntrada
 						.recuperarDados(tamanhoRegistro));
-			}
-			// registro remanescente
-			else {
+			} else {
 				if (arquivos[numeroBuffer].length()
-						- arquivos[numeroBuffer].getFilePointer() > 0) {
-					return recuperarRegistroRemanescente(numeroBuffer);
+						- arquivos[numeroBuffer].getFilePointer() != 0) {
+					preencherBuffer(numeroBuffer);
+					bufferEntrada = buffersEntrada[numeroBuffer];
+					return (Registro) Registro.deserialize(bufferEntrada
+							.recuperarDados(tamanhoRegistro));
 				}
-				System.out
-						.println("Arquivo "
-								+ numeroBuffer+1
-								+ " completamente percorrido. Bytes faltantes: "
-								+ (arquivos[numeroBuffer].length() - arquivos[numeroBuffer]
-										.getFilePointer()));
 				return null;
 			}
 
-		} catch (ClassNotFoundException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Recupera um registro remanescente: um registro em que metade de seus
-	 * bytes estão em um buffer n, e a outra metade se encontra em um buffer
-	 * n+1.
-	 * 
-	 * @param numeroBuffer
-	 *            numero/posição do buffer no vetor de buffers.
-	 * @return o registro remanescente.
-	 */
-	private Registro recuperarRegistroRemanescente(int numeroBuffer) {
-		Buffer bufferEntrada = buffersEntrada[numeroBuffer];
-		try {
-
-			int bytesRemanescentesFinalBuffer = bufferEntrada.getBuffer().length
-					- bufferEntrada.getPonteiro();
-
-			byte[] remanescenteFinalBuffer = bufferEntrada
-					.recuperarDados(bytesRemanescentesFinalBuffer);
-
-			preencherBuffer(numeroBuffer);
-			bufferEntrada = buffersEntrada[numeroBuffer];
-
-			byte[] faltanteInicioBuffer = bufferEntrada
-					.recuperarDados(tamanhoRegistro
-							- bytesRemanescentesFinalBuffer);
-
-			return (Registro) Registro.deserialize(Util.concat(
-					remanescenteFinalBuffer, faltanteInicioBuffer));
 		} catch (ClassNotFoundException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -263,29 +262,50 @@ public class Merge {
 	 *            preencher.
 	 */
 	private void preencherBuffer(int posicaoBuffer) {
-		buffersEntrada[posicaoBuffer] = new Buffer(quantidadeMemoriaDisponivel
-				/ (quantidadeArquivos + 1));
+		buffersEntrada[posicaoBuffer] = new Buffer(
+				otimizarTamanhoMemoria(quantidadeMemoriaDisponivel
+						/ (quantidadeArquivos + 1)));
 		try {
 			System.out.println("Lendo arquivo " + (posicaoBuffer + 1));
 			// é possível ler um buffer inteiro do arquivo
-			if (arquivos[posicaoBuffer].length()
-					- arquivos[posicaoBuffer].getFilePointer() >= buffersEntrada[posicaoBuffer]
-						.getBuffer().length) {
-				arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
-						.getBuffer());
-			} else {
+			if (buffersEntrada[posicaoBuffer].getBuffer().length > arquivos[posicaoBuffer]
+					.length() - arquivos[posicaoBuffer].getFilePointer()) {
 				buffersEntrada[posicaoBuffer] = new Buffer(
 						(int) (arquivos[posicaoBuffer].length() - arquivos[posicaoBuffer]
 								.getFilePointer()));
-				arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
-						.getBuffer());
 			}
+			arquivos[posicaoBuffer].read(buffersEntrada[posicaoBuffer]
+					.getBuffer());
+			buffersEntrada[posicaoBuffer]
+					.setQuantidadeDados(buffersEntrada[posicaoBuffer]
+							.getBuffer().length);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * Otimiza o tamanho da memória disponível, tornando-a o maior valor
+	 * possível que seja múltiplo do tamanho de um registro, sendo menor ou
+	 * igual à memória disponível. Dessa forma é possível garantir que um buffer
+	 * sempre conterá registro completos.
+	 * 
+	 * @param quantidadeMemoriaDisponivel
+	 *            a quantidade de memória que se deseja otimizar.
+	 * @return a quantidade de memória otimizada.
+	 */
+	private int otimizarTamanhoMemoria(int quantidadeMemoriaDisponivel) {
+		int quantidadeMemoriaOtimizada = quantidadeMemoriaDisponivel;
+
+		if (quantidadeMemoriaDisponivel % tamanhoRegistro != 0) {
+			quantidadeMemoriaOtimizada = (quantidadeMemoriaDisponivel / tamanhoRegistro)
+					* tamanhoRegistro;
+		}
+
+		return quantidadeMemoriaOtimizada;
 	}
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 public class OrdenacaoInterna {
 
 	private int tamanhoRegistro;
+	private Buffer buffer;
 
 	public OrdenacaoInterna() throws IOException {
 		tamanhoRegistro = new Registro().serialize().length;
@@ -62,8 +63,6 @@ public class OrdenacaoInterna {
 
 			while (file.getFilePointer() < file.length()) {
 				dadosLidos = remanescentesFinalBuffer.length;
-				// dadosLidos = tamanhoRegistro -
-				// remanescentesFinalBuffer.length;
 				numeroArquivo++;
 				byte[] buffer = new byte[quantidadeMemoriaDisponivel];
 
@@ -204,31 +203,24 @@ public class OrdenacaoInterna {
 	 *            o nome do arquivo que se quer transformar em String.
 	 * @return a string propriamente dita.
 	 */
-	public String fileToString(String nomeArquivo) {
-		StringBuilder builder = new StringBuilder();
-		byte[] buffer = new byte[Constantes.TAMANHO_GIGA / 2];
-		int dadosLidos = 0;
-
+	public void fileToString(String nomeArquivo) {
+		Buffer buffer;
 		try {
 			RandomAccessFile file = new RandomAccessFile(nomeArquivo, "r");
+			buffer = new Buffer((int) file.length());
 
-			System.out.println("Carregando arquivo em memória...");
-			file.read(buffer);
-			System.out.println(file.getFilePointer());
+			System.out.println("Carregando arquivo em memória...  " + (file.length() % tamanhoRegistro));
+			file.read(buffer.getBuffer());
+			buffer.setQuantidadeDados(buffer.getBuffer().length);
 
-			while (dadosLidos + tamanhoRegistro < buffer.length) {
-				byte[] byteRegistro = subvetor(buffer, dadosLidos, dadosLidos
-						+ tamanhoRegistro - 1);
-				
-				Registro registro = (Registro) Registro.deserialize(byteRegistro); 
-				System.out.println(registro.toString());
-				
-				builder.append(registro.toString()+"\n");
-				
-				dadosLidos += tamanhoRegistro;
+			while (buffer.getPonteiro() < buffer.getQuantidadeDados()) {
+				System.out.println(buffer.getQuantidadeDados() - buffer.getPonteiro());
+				Registro registro = (Registro) Registro.deserialize(buffer
+						.recuperarDados(tamanhoRegistro));
+//				System.out.println(registro.getSaldo());
 			}
+			System.out.println(buffer.getQuantidadeDados() - buffer.getPonteiro());
 
-			
 			file.close();
 
 		} catch (FileNotFoundException e) {
@@ -241,8 +233,6 @@ public class OrdenacaoInterna {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return builder.toString();
 
 	}
 
