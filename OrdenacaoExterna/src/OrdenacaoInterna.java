@@ -8,7 +8,6 @@ import java.util.List;
 public class OrdenacaoInterna {
 
 	private int tamanhoRegistro;
-	private Buffer buffer;
 
 	public OrdenacaoInterna() throws IOException {
 		tamanhoRegistro = new Registro().serialize().length;
@@ -209,17 +208,25 @@ public class OrdenacaoInterna {
 			RandomAccessFile file = new RandomAccessFile(nomeArquivo, "r");
 			buffer = new Buffer((int) file.length());
 
-			System.out.println("Carregando arquivo em memória...  " + (file.length() % tamanhoRegistro));
+			System.out.println("Carregando arquivo em memória...  "
+					+ (file.length() % tamanhoRegistro));
 			file.read(buffer.getBuffer());
 			buffer.setQuantidadeDados(buffer.getBuffer().length);
 
+			int quantidadeRegistros = 0;
 			while (buffer.getPonteiro() < buffer.getQuantidadeDados()) {
-				System.out.println(buffer.getQuantidadeDados() - buffer.getPonteiro());
+//				System.out.println("Bytes faltantes para terminar o buffer: "
+//						+ (buffer.getQuantidadeDados() - buffer.getPonteiro()));
 				Registro registro = (Registro) Registro.deserialize(buffer
 						.recuperarDados(tamanhoRegistro));
-//				System.out.println(registro.getSaldo());
+				System.out.println(registro);
+				quantidadeRegistros++;
+
 			}
-			System.out.println(buffer.getQuantidadeDados() - buffer.getPonteiro());
+//			System.out.println("Bytes faltantes para terminar o arquivo: "
+//					+ (file.length() - file.getFilePointer()));
+			System.out.println("Quantidade de Registro do arquivo: "
+					+ quantidadeRegistros);
 
 			file.close();
 

@@ -57,7 +57,7 @@ public class Merge {
 				encherBufferSaida(posicaoMenorRegistro);
 				registros[posicaoMenorRegistro] = recuperarProximoRegistro(posicaoMenorRegistro);
 			} else {
-				escreverBuffer(bufferSaida.getBuffer());
+				escreverBufferSaida(bufferSaida.getBuffer());
 			}
 		}
 
@@ -67,20 +67,21 @@ public class Merge {
 
 	}
 
-	private void validarBufferSaida() {
-		int quantidadeRegistros = 0;
-		while(bufferSaida.getPonteiro() < bufferSaida.getQuantidadeDados()){
-			try {
-				Registro registro = (Registro) Registro.deserialize(bufferSaida.recuperarDados(tamanhoRegistro));
-				quantidadeRegistros++;
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//	private void validarBufferSaida() {
+//		int quantidadeRegistros = 0;
+//		while (bufferSaida.getPonteiro() < bufferSaida.getQuantidadeDados()) {
+//			try {
+//				Registro registro = (Registro) Registro.deserialize(bufferSaida
+//						.recuperarDados(tamanhoRegistro));
+//				quantidadeRegistros++;
+//			} catch (ClassNotFoundException | IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 //		System.out.println(quantidadeRegistros);
-		
-	}
+//
+//	}
 
 	/**
 	 * Abre os arquivos que deverão ser "mergeados".
@@ -102,24 +103,6 @@ public class Merge {
 			}
 		}
 
-	}
-
-	/**
-	 * Fecha os arquivos abertos.
-	 */
-	private void fecharArquivos() {
-		System.out.println("Fechando arquivos abertos...\n");
-		try {
-			for (int i = 0; i < quantidadeArquivos; i++) {
-
-				arquivos[i].close();
-
-			}
-			arquivoSaida.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -146,8 +129,8 @@ public class Merge {
 	 *            o buffer que deverá ser escrito.
 	 * @throws IOException
 	 */
-	private void escreverBuffer(byte[] buffer) throws IOException {
-		validarBufferSaida();
+	private void escreverBufferSaida(byte[] buffer) throws IOException {
+//		validarBufferSaida();
 		System.out.println("Buffer cheio, descarregando " + buffer.length
 				+ " bytes no arquivo...");
 		arquivoSaida.write(buffer);
@@ -171,10 +154,13 @@ public class Merge {
 			}
 			// buffer cheio
 			else {
-				escreverBuffer(bufferSaida.getBuffer());
+				escreverBufferSaida(bufferSaida.getBuffer());
 				esvaziarBufferSaida();
-				bufferSaida.adicionarDados(registros[posicaoRegistro]
-						.serialize());
+				if (bufferSaida.getBuffer().length != 0) {
+					bufferSaida.adicionarDados(registros[posicaoRegistro]
+							.serialize());
+				}
+
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -184,17 +170,48 @@ public class Merge {
 
 	/**
 	 * Esvazia o buffer se saida.
+	 * 
+	 * @throws IOException
 	 */
-	private void esvaziarBufferSaida() {
-		int tamanhoBuffersEntrada = 0;
+	private void esvaziarBufferSaida() throws IOException {
+		int possivelTamanhoBuffer = 0;
 		int tamanhoBufferOtimo = otimizarTamanhoMemoria(quantidadeMemoriaDisponivel
 				/ (quantidadeArquivos + 1));
+		
 		for (int i = 0; i < quantidadeArquivos; i++) {
-			tamanhoBuffersEntrada += buffersEntrada[i].getQuantidadeDados();
+			possivelTamanhoBuffer += (arquivos[i].length() - arquivos[i]
+					.getFilePointer());
+			possivelTamanhoBuffer += (buffersEntrada[i]
+					.getQuantidadeDados() - buffersEntrada[i].getPonteiro());
+			if(registros[i] != null){
+				possivelTamanhoBuffer += tamanhoRegistro;
+			}
 		}
-		if (tamanhoBuffersEntrada < tamanhoBufferOtimo) {
-			tamanhoBufferOtimo = tamanhoBuffersEntrada;
+		
+		if (possivelTamanhoBuffer <= tamanhoBufferOtimo) {
+			tamanhoBufferOtimo = possivelTamanhoBuffer;
 		}
+		
+//		// arquivo acabou...
+//		if (bytesFaltantesArquivos == 0) {
+//			// mas ainda pode haver alguma coisa no buffer / vetor de registros
+//			for (int i = 0; i < quantidadeArquivos; i++) {
+//				bytesFaltantesBuffersEntrada += (buffersEntrada[i]
+//						.getQuantidadeDados() - buffersEntrada[i].getPonteiro());
+//				if(registros[i] != null){
+//					bytesFaltantesBuffersEntrada += tamanhoRegistro;
+//				}
+//				
+//			}
+//			if (bytesFaltantesBuffersEntrada <= tamanhoBufferOtimo) {
+//				tamanhoBufferOtimo = bytesFaltantesBuffersEntrada;
+//			}
+//		} else {
+//			if (bytesFaltantesArquivos <= tamanhoBufferOtimo) {
+//				tamanhoBufferOtimo = bytesFaltantesArquivos;
+//			}
+//		}
+
 		bufferSaida = new Buffer(tamanhoBufferOtimo);
 
 	}
@@ -215,6 +232,24 @@ public class Merge {
 			}
 		}
 		return menorPosicao;
+	}
+
+	/**
+	 * Fecha os arquivos abertos.
+	 */
+	private void fecharArquivos() {
+		System.out.println("Fechando arquivos abertos...\n");
+		try {
+			for (int i = 0; i < quantidadeArquivos; i++) {
+
+				arquivos[i].close();
+
+			}
+			arquivoSaida.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
