@@ -186,31 +186,14 @@ public class Merge {
 			if(registros[i] != null){
 				possivelTamanhoBuffer += tamanhoRegistro;
 			}
+			if (possivelTamanhoBuffer >= tamanhoBufferOtimo) {
+				break;
+			}
 		}
 		
 		if (possivelTamanhoBuffer <= tamanhoBufferOtimo) {
 			tamanhoBufferOtimo = possivelTamanhoBuffer;
 		}
-		
-//		// arquivo acabou...
-//		if (bytesFaltantesArquivos == 0) {
-//			// mas ainda pode haver alguma coisa no buffer / vetor de registros
-//			for (int i = 0; i < quantidadeArquivos; i++) {
-//				bytesFaltantesBuffersEntrada += (buffersEntrada[i]
-//						.getQuantidadeDados() - buffersEntrada[i].getPonteiro());
-//				if(registros[i] != null){
-//					bytesFaltantesBuffersEntrada += tamanhoRegistro;
-//				}
-//				
-//			}
-//			if (bytesFaltantesBuffersEntrada <= tamanhoBufferOtimo) {
-//				tamanhoBufferOtimo = bytesFaltantesBuffersEntrada;
-//			}
-//		} else {
-//			if (bytesFaltantesArquivos <= tamanhoBufferOtimo) {
-//				tamanhoBufferOtimo = bytesFaltantesArquivos;
-//			}
-//		}
 
 		bufferSaida = new Buffer(tamanhoBufferOtimo);
 
@@ -343,4 +326,7 @@ public class Merge {
 		return quantidadeMemoriaOtimizada;
 	}
 
+	public static void setNumeroArquivoSaida(int numeroArquivoSaida) {
+		Merge.numeroArquivoSaida = numeroArquivoSaida;
+	}
 }
