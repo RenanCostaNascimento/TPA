@@ -49,6 +49,7 @@ public class MergeSortExterno {
 		do {
 			alternarArquivosEntradaSaida();
 			abrirArquivos();
+			numeroArquivoSaidaCorrente = 0;
 			// loop para percorrer o arquivo inteiro
 			System.out.println("Iniciando merge...");
 			System.out.println("Tamanho da rodada: " + tamanhoRodada);
@@ -76,10 +77,10 @@ public class MergeSortExterno {
 	 */
 	private void aumentarTamanhoRodada() {
 		tamanhoRodada *= 2;
-		if(tamanhoRodada <= 0){
+		if (tamanhoRodada <= 0) {
 			tamanhoRodada = Long.MAX_VALUE;
 		}
-		
+
 	}
 
 	/**
@@ -97,12 +98,18 @@ public class MergeSortExterno {
 	}
 
 	/**
-	 * Alterna o nome de arquivo de entrada com o nome de arquivo de saída.
+	 * Alterna os arquivos de entrada com os arquivos de saída.
 	 */
 	private void alternarArquivosEntradaSaida() {
 		String nomeTemporario = nomeArquivoEntrada;
 		nomeArquivoEntrada = nomeArquivoSaida;
 		nomeArquivoSaida = nomeTemporario;
+
+		for (int i = 0; i < quantidadeArquivos; i++) {
+			RandomAccessFile arquivoTemporario = arquivosEntrada[i];
+			arquivosEntrada[i] = arquivosSaida[i];
+			arquivosSaida[i] = arquivoTemporario;
+		}
 	}
 
 	/**
@@ -200,8 +207,8 @@ public class MergeSortExterno {
 	private void carregarCacheRegistros(int iteracao) throws IOException,
 			ClassNotFoundException {
 
-		for (int i = 0; i < quantidadeArquivos; i++) {			
-			if (cacheRegistros[i] == null) {		
+		for (int i = 0; i < quantidadeArquivos; i++) {
+			if (cacheRegistros[i] == null) {
 				// é possível ler um registro do arquivo sem ultrapassar o
 				// tamanho da rodada ou extrapolar o tamanho do arquivo?
 				if (arquivosEntrada[i].getFilePointer() + tamanhoRegistro <= tamanhoRegistro
@@ -219,8 +226,7 @@ public class MergeSortExterno {
 				else {
 					for (int j = 0; j < quantidadeArquivos; j++) {
 						if (arquivosEntrada[j].getFilePointer()
-								+ tamanhoRegistro < tamanhoRegistro
-								* iteracao
+								+ tamanhoRegistro <= tamanhoRegistro * iteracao
 								&& arquivosEntrada[j].getFilePointer()
 										+ tamanhoRegistro <= arquivosEntrada[j]
 											.length()) {
@@ -248,7 +254,7 @@ public class MergeSortExterno {
 	 */
 	private void abrirArquivos() {
 		for (int i = 0; i < quantidadeArquivos; i++) {
-			try {				
+			try {
 				arquivosEntrada[i] = new RandomAccessFile(
 						Constantes.CAMINHO_ARQUIVO + nomeArquivoEntrada
 								+ (i + 1), "r");
