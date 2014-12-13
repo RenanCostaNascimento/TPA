@@ -6,7 +6,8 @@ public class Constantes {
 	public static final int TAMANHO_MEGA = 1048576;
 	public static final int QUANTIDADE_GIGA = 10;
 	
-	public static final String CAMINHO_ARQUIVO = "C:\\Users\\20121bsi0252\\Downloads\\Arquivos\\";
+	public static final String CAMINHO_ARQUIVO = "D:\\TPA\\";
+	public static final String ARQUIVO_ENTRADA = "_Entrada";
 	public static final String ARQUIVO_SAIDA = "_Saida";
 	public static final String ARQUIVO_SAIDA_MERGE = "_Merge";
 	public static final String ARQUIVO_SAIDA_MERGE_FINAL = "_Final";
