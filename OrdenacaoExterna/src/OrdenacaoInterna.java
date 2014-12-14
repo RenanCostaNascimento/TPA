@@ -21,7 +21,7 @@ public class OrdenacaoInterna {
 	 * @param tamanhoArquivo
 	 *            o tamanho do arquivo em bytes.
 	 */
-	public void gerarArquivo(String nomeArquivo, float tamanhoArquivo) {
+	public void gerarArquivo(String nomeArquivo, long tamanhoArquivo) {
 		try {
 			RandomAccessFile file = new RandomAccessFile(nomeArquivo, "rw");
 

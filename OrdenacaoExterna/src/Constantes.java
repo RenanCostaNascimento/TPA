@@ -3,6 +3,7 @@ public class Constantes {
 
 	public static final int TAMANHO_INTEIRO = 2147483647;
 	public static final int TAMANHO_GIGA = 1073741824;
+	public static final long TAMANHO_GIGA_LONG = 1073741824;
 	public static final int TAMANHO_MEGA = 1048576;
 	public static final int QUANTIDADE_GIGA = 10;
 	

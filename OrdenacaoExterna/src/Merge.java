@@ -6,6 +6,7 @@ public class Merge {
 	private int tamanhoRegistro;
 	private long tamanhoFinalArquivoSaida = 0;
 	private static int numeroArquivoSaida = 1;
+	public static int seeks = 0;
 	private int numeroArquivoEntrada;
 
 	private RandomAccessFile[] arquivos;
@@ -191,7 +192,7 @@ public class Merge {
 			}
 		}
 		
-		if (possivelTamanhoBuffer <= tamanhoBufferOtimo) {
+		if (possivelTamanhoBuffer <= tamanhoBufferOtimo && possivelTamanhoBuffer > 0) {
 			tamanhoBufferOtimo = possivelTamanhoBuffer;
 		}
 
@@ -285,6 +286,7 @@ public class Merge {
 						/ (quantidadeArquivos + 1)));
 		try {
 			System.out.println("Lendo arquivo " + (posicaoBuffer + 1));
+			seeks++;
 			// é possível ler um buffer inteiro do arquivo
 			if (buffersEntrada[posicaoBuffer].getBuffer().length > arquivos[posicaoBuffer]
 					.length() - arquivos[posicaoBuffer].getFilePointer()) {

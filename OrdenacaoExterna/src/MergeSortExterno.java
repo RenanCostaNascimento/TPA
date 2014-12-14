@@ -12,6 +12,7 @@ public class MergeSortExterno {
 	private Registro[] cacheRegistros;
 	private int tamanhoRegistro;
 	private long tamanhoRodada;
+	public static int seeks = 0;
 
 	/**
 	 * Cria o MergeSortExterno.
@@ -218,6 +219,7 @@ public class MergeSortExterno {
 									.length()) {
 					byte[] bytesRegistro = new byte[tamanhoRegistro];
 					arquivosEntrada[i].read(bytesRegistro);
+					seeks++;
 					cacheRegistros[i] = (Registro) Registro
 							.deserialize(bytesRegistro);
 				}
@@ -232,6 +234,7 @@ public class MergeSortExterno {
 											.length()) {
 							byte[] bytesRegistro = new byte[tamanhoRegistro];
 							arquivosEntrada[j].read(bytesRegistro);
+							seeks++;
 							cacheRegistros[i] = (Registro) Registro
 									.deserialize(bytesRegistro);
 							break;
